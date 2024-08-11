@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:studystack/screens/mydecks.dart';
 import 'package:studystack/screens/Favorite.dart';
 import 'package:studystack/screens/setting.dart';
-import 'package:studystack/core/model/users.dart';
+import 'package:studystack/feature/auth/model/users.dart';
 
 class CustomNavigationBar extends StatefulWidget {
-  final Users currentUser; // Pass the current user to this widget
+  final User currentUser; // Pass the current user to this widget
 
   const CustomNavigationBar({super.key, required this.currentUser});
 

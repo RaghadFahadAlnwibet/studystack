@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:studystack/SQLite/sqlite.dart';
-import 'package:studystack/screens/authentication/login.dart';
-import 'package:studystack/core/model/users.dart';
+import 'package:studystack/feature/auth/view/screen/login.dart';
+import 'package:studystack/feature/auth/model/users.dart';
 import 'package:studystack/screens/mydecks.dart';
+import 'package:studystack/core/locale_db/sql_helper.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -181,16 +181,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   height: 50, 
                   width: MediaQuery.of(context).size.width * .9,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: ()async {
                       if (_formkey.currentState!.validate()) {
-                          final db = DatabaseHelper();
-                           Users user = Users(
+                           User user = User(
                           email: email.text,
                           password: password.text,
                         );
                         if(user.userId == null){
                           print("User is is null ");
                         }
+                        final data = await DBHelper.insert(table: 'Users', data: user.toJson());
+
+                        print("Data: $data");
+                        if(data != -1){
+                          user.userId = data;
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => Mydecks(currentUser: user)),
+                          );
+                        }
+
                           // db.signUp(user).whenComplete((){
                           //    Navigator.pushReplacement(
                           //     context,

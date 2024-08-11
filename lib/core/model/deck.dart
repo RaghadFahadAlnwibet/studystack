@@ -17,6 +17,6 @@ class Decks {
       );
 
   Map<String, dynamic> toJson() {
-    return {'title': title, 'userId': userId, 'deckId' : deckId};
+    return {'title': title, 'userId': userId};
   }
 }

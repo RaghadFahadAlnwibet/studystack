@@ -1,15 +1,16 @@
-class Users {
-  final int? userId;
+class User {
+   int? userId;
   final String email;
   final String password;
 
-  Users({
+  User({
     this.userId,
     required this.email,
     required this.password,
   });
 
-  factory Users.fromJson(Map<String, dynamic> json) => Users(
+  factory User.fromJson(Map<String, dynamic> json) => User(
+        userId: json['id'],
         email: json['email'],
         password: json['password'],
       );

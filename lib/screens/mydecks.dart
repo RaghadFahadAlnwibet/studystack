@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:studystack/SQLite/sqlite.dart';
 import 'package:studystack/core/model/deck.dart';
-import 'package:studystack/core/model/users.dart';
+import 'package:studystack/feature/auth/model/users.dart';
 import 'package:studystack/screens/reviewDecks.dart';
 
+import '../core/locale_db/sql_helper.dart';
+
 class Mydecks extends StatefulWidget {
-  final Users currentUser; // Add currentUser to pass the logged-in user
+  final User currentUser; // Add currentUser to pass the logged-in user
 
   const Mydecks({super.key, required this.currentUser});
 
@@ -14,8 +15,7 @@ class Mydecks extends StatefulWidget {
 }
 
 class _MydecksState extends State<Mydecks> {
-  late DatabaseHelper handler;
-  late Future<List<Decks>> decks;
+  Future<List<Decks>>? decks;
 
   final List<Color> deckColors = [
     Colors.purple.shade100,
@@ -26,17 +26,13 @@ class _MydecksState extends State<Mydecks> {
   ];
 
   Future<List<Decks>> getAllDecks() {
-    return handler.getDecks(
+    return DBHelper.getDecks(
         widget.currentUser.userId!); // Fetch decks for the logged-in user
   }
 
   @override
   void initState() {
-    handler = DatabaseHelper();
-
-    decks = handler.getDecks(widget
-        .currentUser.userId!); // Initialize decks with the current user's data
-    handler.initDB().whenComplete(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
         decks = getAllDecks();
       });
@@ -45,7 +41,7 @@ class _MydecksState extends State<Mydecks> {
   }
 
   Future<List<Decks>> serarch() {
-    return handler.searchDecks(keyword.text,
+    return DBHelper.searchDecks(keyword.text,
         widget.currentUser.userId!); // Search decks for the current user
   }
 
@@ -53,7 +49,6 @@ class _MydecksState extends State<Mydecks> {
   final keyword = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
-  final db = DatabaseHelper();
 
   void showDeckTitleDialog(BuildContext context) {
     titleController.clear();
@@ -123,8 +118,7 @@ class _MydecksState extends State<Mydecks> {
             TextButton(
               onPressed: () {
                 if (formKey.currentState?.validate() ?? false) {
-                  db
-                      .createDeck(Decks(
+                  DBHelper.createDeck(Decks(
                     title: titleController.text,
                     userId: widget
                         .currentUser.userId!, 
@@ -318,7 +312,7 @@ class _MydecksState extends State<Mydecks> {
                                         newTitle.isNotEmpty) {
                                       setState(() {
                                         decksList[index].title = newTitle;
-                                        db.updateDeck(
+                                        DBHelper.updateDeck(
                                             newTitle, decksList[index].deckId!);
                                       });
                                     }
@@ -338,8 +332,7 @@ class _MydecksState extends State<Mydecks> {
                                     GestureDetector(
                                       onTap: () {
                                         if (decksList[index].deckId != null) {
-                                          db
-                                              .deleteDeck(
+                                          DBHelper.deleteDeck(
                                                   decksList[index].deckId!)
                                               .whenComplete(() => _refresh())
                                               .catchError((error) {

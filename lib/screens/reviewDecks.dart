@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:studystack/SQLite/sqlite.dart';
 import 'package:studystack/core/model/deck.dart';
 
 class ReviewDeck extends StatefulWidget {
@@ -14,7 +13,6 @@ class ReviewDeck extends StatefulWidget {
 
 // Create a deck then create cards
 class _ReviewDeck extends State<ReviewDeck> {
-  final db = DatabaseHelper();
 
   @override
   Widget build(BuildContext context) {

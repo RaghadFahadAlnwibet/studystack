@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:studystack/SQLite/sqlite.dart';
-import 'package:studystack/screens/authentication/signup.dart';
+import 'package:studystack/feature/auth/view/screen/signup.dart';
 import 'package:studystack/screens/mydecks.dart';
-import 'package:studystack/core/model/users.dart';
+import 'package:studystack/feature/auth/model/users.dart';
+
+import '../../../../core/locale_db/sql_helper.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -17,7 +18,6 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isVisible = true;
   final _formKey = GlobalKey<FormState>();
   bool isLoginTrue = false;
-  final db = DatabaseHelper();
 
   InputDecoration _inputDecoration(
       String hintText, IconData iconData, bool isPasswordField) {
@@ -58,15 +58,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login() async {
-  Users user = Users(
+  User user = User(
     email: emailController.text,
     password: passwordController.text,
   );
 
-  
-    var response = await db.login(user);
 
-    if (response) {
+  List<Map> result = await DBHelper.dataBase!.rawQuery(
+      'SELECT * FROM Users WHERE email = ? AND password = ?',
+      [user.email, user.password]
+  );    // final response = await DBHelper.getData(tableName: 'Users');
+    if (result.isNotEmpty) {
+      user.userId = result[0]['id'];
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => Mydecks(currentUser: user)),
