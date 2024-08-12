@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studystack/feature/auth/view/screen/login.dart';
 import 'core/locale_db/sql_helper.dart';
 
@@ -10,7 +11,7 @@ void main() async{
   WidgetsFlutterBinding.ensureInitialized();
 
   await DBHelper.initDatabase();
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -25,7 +26,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData.dark().copyWith(
         scaffoldBackgroundColor: Colors.white,
       ),
-       home: const  LoginScreen(),
+       home: const LoginScreen(),
     );
 }
 }

@@ -1,5 +1,5 @@
 class User {
-   int? userId;
+  int? userId;
   final String email;
   final String password;
 
@@ -16,6 +16,9 @@ class User {
       );
 
   Map<String, dynamic> toJson() {
-    return {'email': email, 'password': password};
+    return {'id': userId,'email': email, 'password': password};
   }
 }
+
+
+

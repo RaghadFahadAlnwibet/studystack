@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:studystack/screens/mydecks.dart';
+import 'package:studystack/feature/decks/view/screen/mydecks.dart';
 import 'package:studystack/screens/Favorite.dart';
 import 'package:studystack/screens/setting.dart';
 import 'package:studystack/feature/auth/model/users.dart';

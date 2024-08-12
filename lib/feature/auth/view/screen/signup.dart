@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:studystack/feature/auth/view/screen/login.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:studystack/feature/decks/view/screen/mydecks.dart';
 import 'package:studystack/feature/auth/model/users.dart';
-import 'package:studystack/screens/mydecks.dart';
-import 'package:studystack/core/locale_db/sql_helper.dart';
+import 'package:studystack/feature/auth/view/screen/login.dart';
+import 'package:studystack/feature/auth/provider/auth_provider.dart';
+import 'package:studystack/feature/state/view_state.dart';
 
-class SignUpScreen extends StatefulWidget {
+class SignUpScreen extends ConsumerStatefulWidget {
   const SignUpScreen({super.key});
 
   @override
-  State<SignUpScreen> createState() {
+  ConsumerState<SignUpScreen> createState() {
     return _SignUpScreenState();
   }
 }
 
-class _SignUpScreenState extends State<SignUpScreen> {
+class _SignUpScreenState extends ConsumerState<SignUpScreen> {
   final email = TextEditingController();
   final password = TextEditingController();
   final confirmpassword = TextEditingController();
@@ -66,6 +68,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final authNotifier = ref.read(authProvider.notifier);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Center(
@@ -74,7 +79,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             padding: const EdgeInsets.all(30),
             child: Form(
               key: _formkey,
-              autovalidateMode: AutovalidateMode.onUserInteraction,  // Validate only after user interaction
+              autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(children: [
                 const AnimatedTitle(),
                 const SizedBox(
@@ -120,7 +125,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         return 'Please enter a password';
                       } else if (value.length < 8) {
                         return 'Password must be at least 8 characters long';
-                      } 
+                      }
                       return null;
                     },
                     obscureText: isVisible,
@@ -178,50 +183,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   height: 20,
                 ),
                 SizedBox(
-                  height: 50, 
+                  height: 50,
                   width: MediaQuery.of(context).size.width * .9,
-                  child: ElevatedButton(
-                    onPressed: ()async {
-                      if (_formkey.currentState!.validate()) {
-                           User user = User(
-                          email: email.text,
-                          password: password.text,
-                        );
-                        if(user.userId == null){
-                          print("User is is null ");
-                        }
-                        final data = await DBHelper.insert(table: 'Users', data: user.toJson());
+                  child: authState is LoadingViewState
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                          onPressed: () async {
+                            if (_formkey.currentState!.validate()) {
+                              await authNotifier.signUp(
+                                email.text.trim(),
+                                password.text.trim(),
+                              );
 
-                        print("Data: $data");
-                        if(data != -1){
-                          user.userId = data;
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => Mydecks(currentUser: user)),
-                          );
-                        }
-
-                          // db.signUp(user).whenComplete((){
-                          //    Navigator.pushReplacement(
-                          //     context,
-                          //     MaterialPageRoute(builder: (context) => Mydecks(currentUser: user)),
-                          //   );
-                          // });
-                      }
-                    },
-                    style: ButtonStyle(
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30.0),
+                              final currentState = ref.read(authProvider);
+                              if (currentState is LoadedViewState<User>) {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => Mydecks(currentUser: currentState.data),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          style: ButtonStyle(
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                            ),
+                          ),
+                          child: const Text(
+                            "Sign up",
+                            style: TextStyle(color: Colors.white, fontSize: 20),
+                          ),
                         ),
-                      ),
-                    ),
-                    child: const Text(
-                      "Sign up",
-                      style: TextStyle(color: Colors.white, fontSize: 20),
+                ),
+                if (authState is ErrorViewState)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Text(
+                      authState.errorMessage ?? 'An error occurred',
+                      style: const TextStyle(color: Colors.red),
                     ),
                   ),
-                ),
                 const SizedBox(
                   height: 100,
                 ),
@@ -253,8 +258,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 }
-
-
 
 class AnimatedTitle extends StatefulWidget {
   const AnimatedTitle({super.key});
@@ -300,7 +303,7 @@ class _AnimatedTitleState extends State<AnimatedTitle> {
                 fontSize: 55, fontWeight: FontWeight.bold, color: Colors.blue),
           ),
         ),
-     ),
-  );
+      ),
+    );
   }
 }

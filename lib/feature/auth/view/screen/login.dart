@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studystack/feature/auth/view/screen/signup.dart';
-import 'package:studystack/screens/mydecks.dart';
+import 'package:studystack/feature/decks/view/screen/mydecks.dart';
 import 'package:studystack/feature/auth/model/users.dart';
-
-import '../../../../core/locale_db/sql_helper.dart';
-
-class LoginScreen extends StatefulWidget {
+import 'package:studystack/feature/auth/provider/auth_provider.dart';
+import 'package:studystack/feature/state/view_state.dart';
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   bool isVisible = true;
-  final _formKey = GlobalKey<FormState>();
   bool isLoginTrue = false;
+
+  final _formKey = GlobalKey<FormState>();
 
   InputDecoration _inputDecoration(
       String hintText, IconData iconData, bool isPasswordField) {
@@ -57,35 +58,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> login() async {
-  User user = User(
-    email: emailController.text,
-    password: passwordController.text,
-  );
-
-
-  List<Map> result = await DBHelper.dataBase!.rawQuery(
-      'SELECT * FROM Users WHERE email = ? AND password = ?',
-      [user.email, user.password]
-  );    // final response = await DBHelper.getData(tableName: 'Users');
-    if (result.isNotEmpty) {
-      user.userId = result[0]['id'];
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => Mydecks(currentUser: user)),
-      );
-    } else {
-      setState(() {
-        isLoginTrue = true;
-      });
-    }
-}
-
-
-
-
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider); 
+    final authNotifier = ref.read(authProvider.notifier); 
+
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -135,26 +112,45 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
-                    height: 50, // Slightly increased height for a modern look
+                    height: 50, 
                     width: MediaQuery.of(context).size.width * 0.9,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          login();
-                        }
-                      },
-                      style: ButtonStyle(
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30.0),
+                    child: authState is LoadingViewState
+                        ? const Center(child: CircularProgressIndicator())
+                        : ElevatedButton(
+                            onPressed: () async {
+                              if (_formKey.currentState!.validate()) {
+                                await authNotifier.login(
+                                  emailController.text.trim(),
+                                  passwordController.text.trim(),
+                                );
+
+                                final currentState = ref.read(authProvider);
+                                if (currentState is LoadedViewState<User>) {
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => Mydecks(currentUser: currentState.data),
+                                    ),
+                                  );
+                                } else if (currentState is ErrorViewState) {
+                                  setState(() {
+                                    isLoginTrue = true;
+                                  });
+                                }
+                              }
+                            },
+                            style: ButtonStyle(
+                              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
+                              ),
+                            ),
+                            child: const Text(
+                              "Login",
+                              style: TextStyle(color: Colors.white, fontSize: 20),
+                            ),
                           ),
-                        ),
-                      ),
-                      child: const Text(
-                        "Login",
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 100),
                   Row(
@@ -178,11 +174,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  isLoginTrue ? 
-                    const Text(
-                      "Username or password is incorrect",
-                      style: TextStyle(color: Colors.red),
-                    ): const SizedBox(),
+                  isLoginTrue 
+                    ? const Text(
+                        "Username or password is incorrect",
+                        style: TextStyle(color: Colors.red),
+                      )
+                    : const SizedBox(),
                 ],
               ),
             ),

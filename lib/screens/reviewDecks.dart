@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:studystack/core/model/deck.dart';
+import 'package:studystack/feature/decks/model/deck.dart';
 
 class ReviewDeck extends StatefulWidget {
   final Decks deck;
