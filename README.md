@@ -15,3 +15,5 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 "# studystack" 
+
+## A mobile application to help learners improve retention through personalized review schedules and custom spaced repetition.
